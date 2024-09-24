@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interface/HBSelectableInterface.h"
 #include "HBCharacterBase.generated.h"
 
 UCLASS()
-class HOKBURI_API AHBCharacterBase : public ACharacter
+class HOKBURI_API AHBCharacterBase : public ACharacter, public IHBSelectableInterface
 {
 	GENERATED_BODY()
 
@@ -26,4 +27,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
+	// Command Handler
+public:
+	UFUNCTION(BlueprintCallable)
+	virtual UHBCommandHandler* GetCommandHandler() override;
+private:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UHBCommandHandler> CommandHandler;
 };

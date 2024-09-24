@@ -87,7 +87,7 @@ bool AHBPlayerCameraPawn::MoveCameraFromMouseInEdge(float DeltaTime)
 	PC->GetMousePosition(MouseX, MouseY);
 	PC->GetViewportSize(ScreenSizeX, ScreenSizeY);
 	// GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Black, FString::Printf(TEXT("X:%f, Y:%f"), MouseX, MouseY));
-	if (MouseX < 0.f || MouseX > ScreenSizeX || MouseY < 0.f || MouseY > ScreenSizeY)
+	if (MouseX <= 0.f || MouseX >= ScreenSizeX || MouseY <= 0.f || MouseY >= ScreenSizeY)
 		return false;
 
 	FVector FrontDir = GetActorForwardVector();

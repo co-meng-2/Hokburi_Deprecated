@@ -3,9 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AttributeSet.h"
+#include "HBPlayerCharacter.h"
+#include "Core/StorySystem/GameAbilitySystem/HBAttributeSets.h"
 #include "GameFramework/PlayerController.h"
 #include "HBPlayerControllerBase.generated.h"
 
+class UHBPlayerWidgetComponent;
+class AHBPlayerCharacter;
 class UInputAction;
 class UInputMappingContext;
 /**
@@ -21,32 +26,42 @@ class HOKBURI_API AHBPlayerControllerBase : public APlayerController
 public:
 	AHBPlayerControllerBase();
 	virtual void BeginPlay() override;
-	virtual void SetupInputComponent() override;
+
 	AActor* GetActorUnderCursor();
 	virtual void Tick(float DeltaSeconds) override;
 
+	// Input
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Hokburi | Input")
 	UInputMappingContext* IMC;
 
-	// Actor 선택
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hokburi | Input")
+	UInputAction* IA_Select;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hokburi | Input")
+	UInputAction* IA_Command;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hokburi | Input")
+	TArray<UInputAction*> IA_ActivateStoryArray;
+
+	virtual void SetupInputComponent() override;
 private:
-	// @HB-Todo : Interface만들어서 선택가능한 Actor들 상호작용 정의
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
+	void ActivateStory(EStoryMappingKey::Key Key);
+
+	// Selected
+private:
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Hokburi | Selected")
 	TWeakObjectPtr<AActor>  SelectedActor;
 	TWeakObjectPtr<AActor>  CachedActor;
+	TWeakObjectPtr<AHBPlayerCharacter>	MainCharacter;
 
 	void SelectActor();
 	void CommandSelectedActor();
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UInputAction* IA_Select;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UInputAction* IA_Command;
+	UFUNCTION(BlueprintCallable)
+	AActor* GetSelectedActor() { return SelectedActor.Get(); }
+	UFUNCTION(BlueprintCallable)
+	void SetSelectedActor(AActor* NewActor) { SelectedActor = NewActor; }
+	AHBPlayerCharacter* GetMainCharacter() { return MainCharacter.Get(); }
 
-	UFUNCTION(BlueprintCallable)
-	AActor* GetSelectedActor() { return SelectedActor.Get(); };
-	UFUNCTION(BlueprintCallable)
-	void SetSelectedActor(AActor* NewActor) { SelectedActor = NewActor; };
+	friend class AHBGameModeBase;
 };

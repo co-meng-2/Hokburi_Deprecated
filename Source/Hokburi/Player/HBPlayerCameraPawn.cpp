@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 
 AHBPlayerCameraPawn::AHBPlayerCameraPawn()
 {
@@ -27,8 +28,6 @@ void AHBPlayerCameraPawn::BeginPlay()
 
 	CachedTargetLength = CameraBoom->TargetArmLength;
 }
-
-
 
 void AHBPlayerCameraPawn::Tick(float DeltaTime)
 {
@@ -86,7 +85,8 @@ bool AHBPlayerCameraPawn::MoveCameraFromMouseInEdge(float DeltaTime)
 	float MouseX, MouseY;
 	PC->GetMousePosition(MouseX, MouseY);
 	PC->GetViewportSize(ScreenSizeX, ScreenSizeY);
-	// GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Black, FString::Printf(TEXT("X:%f, Y:%f"), MouseX, MouseY));
+
+	// OutOfWindow
 	if (MouseX <= 0.f || MouseX >= ScreenSizeX || MouseY <= 0.f || MouseY >= ScreenSizeY)
 		return false;
 

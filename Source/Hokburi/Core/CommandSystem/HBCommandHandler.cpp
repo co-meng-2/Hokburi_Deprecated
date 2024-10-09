@@ -7,9 +7,9 @@
 #include "AI/HBAIControllerBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
-void UHBCommand_Move::Execute_Implementation(AActor* Actor)
+void UHBCommand_Move::RunCommand_Implementation(AActor* Actor)
 {
-	Super::Execute_Implementation(Actor);
+	Super::RunCommand_Implementation(Actor);
 	if( auto Pawn = Cast<APawn>(Actor))
 	{
 		if(auto Controller = Pawn->GetController())
@@ -29,18 +29,25 @@ UBlackboardComponent* UHBCommandHandler::GetBlackBoard()
 	return BB;
 }
 
+
 void UHBCommandHandler::EnqueueCommand(UHBCommand* NewCommand)
 {
 	CommandQueue.Enqueue(NewCommand);
+	NewCommand->AddToRoot();
+	
 	GetBlackBoard()->SetValueAsBool(FName("HasCommand"), true);
 }
 
-bool UHBCommandHandler::PopCommand()
+bool UHBCommandHandler::DequeueCommand()
 {
 	if (CommandQueue.IsEmpty())
+	{
 		return false;
+	}
 
-	CommandQueue.Pop();
+	UHBCommand* OutCommand = nullptr;
+	CommandQueue.Dequeue(OutCommand);
+	OutCommand->RemoveFromRoot();
 
 	if (CommandQueue.IsEmpty())
 		GetBlackBoard()->SetValueAsBool(FName("HasCommand"), false);

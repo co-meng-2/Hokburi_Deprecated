@@ -8,7 +8,7 @@
 
 class UHBCommandHandler;
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(BlueprintType)
 class UHBSelectableInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -22,5 +22,6 @@ class HOKBURI_API IHBSelectableInterface
 	GENERATED_BODY()
 
 public:
-	virtual UHBCommandHandler* GetCommandHandler() = 0;
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	UHBCommandHandler* GetCommandHandler();
 };

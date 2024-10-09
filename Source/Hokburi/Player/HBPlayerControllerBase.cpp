@@ -6,7 +6,10 @@
 #include "AIController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/HBPlayerWidgetComponent.h"
 #include "Core/CommandSystem/HBCommandHandler.h"
+#include "Core/StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
+#include "Engine/LocalPlayer.h"
 #include "Interface/HBSelectableInterface.h"
 
 AHBPlayerControllerBase::AHBPlayerControllerBase()
@@ -30,6 +33,20 @@ void AHBPlayerControllerBase::SetupInputComponent()
 	UEnhancedInputComponent* EIComp = Cast<UEnhancedInputComponent>(InputComponent);
 	EIComp->BindAction(IA_Select, ETriggerEvent::Triggered, this, &ThisClass::SelectActor);
 	EIComp->BindAction(IA_Command, ETriggerEvent::Triggered, this, &ThisClass::CommandSelectedActor);
+
+	for(int i = EStoryMappingKey::E_Start; i < EStoryMappingKey::END; ++i)
+	{
+		EStoryMappingKey::Key Key = static_cast<EStoryMappingKey::Key>(i);
+		EIComp->BindAction<>(IA_ActivateStoryArray[Key], ETriggerEvent::Triggered, this, &ThisClass::ActivateStory, Key);
+	}
+}
+
+void AHBPlayerControllerBase::ActivateStory(EStoryMappingKey::Key Key)
+{
+	auto SelectedCharacter = Cast<AHBPlayerCharacter>(SelectedActor);
+	if (SelectedCharacter) return;
+	
+	SelectedCharacter->ActivateStory(Key);
 }
 
 AActor* AHBPlayerControllerBase::GetActorUnderCursor()
@@ -70,7 +87,7 @@ void AHBPlayerControllerBase::CommandSelectedActor()
 	AAIController* AIController = Cast<AAIController>(ActorPawn->GetController());
 	if (!AIController) return;
 
-	auto CommandHandler = Cast<IHBSelectableInterface>(SelectedActor)->GetCommandHandler();
+	auto CommandHandler = Cast<IHBSelectableInterface>(SelectedActor)->Execute_GetCommandHandler(SelectedActor.Get());
 	if (!CommandHandler) return;
 
 	FHitResult Hit;
@@ -88,4 +105,6 @@ void AHBPlayerControllerBase::CommandSelectedActor()
 		// @HB-ToDo : Attack, Hold... 
 	}
 }
+
+
 

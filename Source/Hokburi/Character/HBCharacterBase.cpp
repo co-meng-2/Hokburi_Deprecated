@@ -4,20 +4,24 @@
 #include "Character/HBCharacterBase.h"
 
 #include "Core/CommandSystem/HBCommandHandler.h"
+#include "Core/StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
 
 // Sets default values
 AHBCharacterBase::AHBCharacterBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	CommandHandler = CreateDefaultSubobject<UHBCommandHandler>(FName("CommandHandler"));
+
+	// BP로 위임 -> SelectableInterface 구현 -> GetCommandHandler구현 강제됨. -> CommandHandler추가할지 말지 결정.
+	// CommandHandler = CreateDefaultSubobject<UHBCommandHandler>(FName("CommandHandler"));
+
+	ASC = CreateDefaultSubobject<UHBAbilitySystemComponent>(FName("AbilitySystemComponent"));
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
-// Called when the game starts or when spawned
 void AHBCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	CommandHandler->bCanMove = true;
 }
 
 // Called every frame
@@ -31,11 +35,5 @@ void AHBCharacterBase::Tick(float DeltaTime)
 void AHBCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-
-UHBCommandHandler* AHBCharacterBase::GetCommandHandler()
-{
-	return CommandHandler;
 }
 

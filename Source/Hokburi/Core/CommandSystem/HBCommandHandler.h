@@ -3,26 +3,25 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Navigation/PathFollowingComponent.h"
-#include "UObject/NoExportTypes.h"
+#include "Core/HBObject.h"
 #include "HBCommandHandler.generated.h"
 
 class UBlackboardComponent;
 class UHBCommandHandler;
 struct FAIRequestID;
 
-UCLASS(Abstract)
-class HOKBURI_API UHBCommand : public UObject
+UCLASS(Abstract, Blueprintable)
+class HOKBURI_API UHBCommand : public UHBObject
 {
 	GENERATED_BODY()
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void Execute(AActor* Actor);
+	void RunCommand(AActor* Actor);
 
 	TWeakObjectPtr<UHBCommandHandler> Owner;
 
-	virtual void Execute_Implementation(AActor* Actor){};
+	virtual void RunCommand_Implementation(AActor* Actor){};
 };
 
 UCLASS()
@@ -33,11 +32,11 @@ private:
 	FVector DestLocation;
 
 public:
-	virtual void Execute_Implementation(AActor* Actor) override;
+	virtual void RunCommand_Implementation(AActor* Actor) override;
 	void SetDestLocation(FVector NewLoc) { DestLocation = NewLoc; };
 };
 
-UCLASS()
+UCLASS(BlueprintType, meta = (BlueprintSpawnableComponent))
 class HOKBURI_API UHBCommandHandler : public UActorComponent
 {
 	GENERATED_BODY()
@@ -45,13 +44,14 @@ class HOKBURI_API UHBCommandHandler : public UActorComponent
 private:
 	TQueue<UHBCommand*> CommandQueue;
 
+
 public:
 	UBlackboardComponent* GetBlackBoard();
 	// TQueue<UHBCommand> CommandQueue; Object를 상속받는 Class에 대해서는 이것이 권장되지 않을 뿐더러 복사생성자가 모호함.
 	UFUNCTION(BlueprintCallable)
 	void EnqueueCommand(UHBCommand* NewCommand);
 	UFUNCTION(BlueprintCallable)
-	bool PopCommand();
+	bool DequeueCommand();
 	UFUNCTION(BlueprintCallable)
 	const UHBCommand* PeekCommand();
 

@@ -54,7 +54,6 @@ public:
 	float MinZoom = 2000.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Hokburi | Zoom")
 	float ZoomSpeed = 500.f;
-	UPROPERTY(EditDefaultsOnly, Category = "Hokburi | Zoom")
 	float ZoomSmoothSpeed = 5.f;
 
 private:

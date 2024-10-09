@@ -19,7 +19,9 @@ public class Hokburi : ModuleRules
             "GameplayTasks",
             "NavigationSystem",
             "AIModule",
-            "Niagara"
+            "Niagara",
+			"Slate",
+			"SlateCore"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

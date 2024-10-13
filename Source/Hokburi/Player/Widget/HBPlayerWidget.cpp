@@ -5,57 +5,67 @@
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
-#include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Core/HBBlueprintFunctionLibrary.h"
 #include "Core/StorySystem/HBStoryManager.h"
-#include "Core/StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
-#include "Core/Widget/ContentWidget/HBButtons.h"
-#include "Kismet/GameplayStatics.h"
+#include "Core/Widget/Widget/HBProgressBar.h"
+#include "GameFramework/PlayerState.h"
 #include "Player/HBPlayerCharacter.h"
+#include "Player/HBPlayerControllerBase.h"
 #include "Player/Components/HBPlayerWidgetComponent.h"
 
-void UHBStatusUI::NativeConstruct()
+void UHBStatusUI::BindDelegate()
 {
-	Super::NativeConstruct();
+	Super::BindDelegate();
+	BindHPBarDelegate();
+}
 
+void UHBStatusUI::BindHPBarDelegate()
+{
 	auto DelegateHP = RequestAttChangeDelegate(UHBHealthAttributeSet::GetHealthAttribute());
-	DelegateHP->AddDynamic(this, &ThisClass::UpdateHP);
+	DelegateHP->AddDynamic(HPBar, &UHBProgressBar::UpdateCur);
 
 	auto DelegateMaxHP = RequestAttChangeDelegate(UHBHealthAttributeSet::GetMaxHealthAttribute());
-	DelegateMaxHP->AddDynamic(this, &ThisClass::UpdateMaxHP);
+	DelegateMaxHP->AddDynamic(HPBar, &UHBProgressBar::UpdateMax);
 }
 
-void UHBStatusUI::UpdateHPBar()
+void UHBStatusUI::Init()
 {
-	HPBar->SetPercent(HP / MaxHP);
-}
-
-void UHBStatusUI::UpdateHP(float New)
-{
-	HP = New;
-	UpdateHPBar();
-}
-
-void UHBStatusUI::UpdateMaxHP(float New)
-{
-	MaxHP = New;
-	UpdateHPBar();
+	Super::Init();
+	auto AttSetHealth = UHBGameAbilitySystemBFL::GetAttSet<UHBHealthAttributeSet>(GetOwningPlayerState(), UHBHealthAttributeSet::GetMaxHealthAttribute());
+	HPBar->Init(AttSetHealth->GetHealth(), AttSetHealth->GetMaxHealth());
 }
 
 
-FOnAttributeChangedDelegate* UHBStatusUI::RequestAttChangeDelegate(FGameplayAttribute Attribute)
+FOnAttributeChangedDelegate* UHBStatusUI::RequestAttChangeDelegate(const FGameplayAttribute& Attribute)
 {
-	auto WidgetComponent = Cast<UHBPlayerWidget>(FindRootUserWidget(this))->OwnerComponent;
-	return WidgetComponent->GetAttChangeDelegate(Attribute);
+	auto PlayerState = GetOwningPlayerState();
+	return UHBGameAbilitySystemBFL::GetAttChangeDelegate(PlayerState, Attribute);
 }
 
-void UHBStoryButtonUI::NativeConstruct()
+void UHBStoryButtonUI::PreInit()
 {
-	Super::NativeConstruct();
-
+	Super::PreInit();
 	InitButtonMap();
+}
+
+void UHBStoryButtonUI::Init()
+{
+	Super::Init();
+	auto PlayerWidgetComponent = GetOwningPlayer()->GetComponentByClass<UHBPlayerWidgetComponent>();
+	const TArray<UHBStory*>& StoryArray = PlayerWidgetComponent->GetStoryArray();
+	for(int i = 0; i < StoryArray.Num(); ++i)
+	{
+		EStoryMappingKey::Key Key = static_cast<EStoryMappingKey::Key>(i);
+		UpdateButton(Key, StoryArray[i]->GetStoryInfo());
+	}
+}
+
+void UHBStoryButtonUI::BindDelegate()
+{
+	Super::BindDelegate();
 	BindStoryChangeDelegate();
 	BindOnClickedDelegate();
 }
@@ -74,6 +84,13 @@ void UHBStoryButtonUI::InitButtonMap()
 	Button_StoryC->EStoryMappingKey = EStoryMappingKey::C;
 	ButtonMap.Add(EStoryMappingKey::V, Button_StoryV);
 	Button_StoryV->EStoryMappingKey = EStoryMappingKey::V;
+}
+
+FOnStoryChangeDelegate* UHBStoryButtonUI::RequestStoryChangeDelegate()
+{
+	auto PlayerController = GetOwningPlayer();
+	auto PlayerWidgetComponent = PlayerController->GetComponentByClass<UHBPlayerWidgetComponent>();
+	return PlayerWidgetComponent->GetStoryChangeDelegate();
 }
 
 void UHBStoryButtonUI::BindStoryChangeDelegate()
@@ -101,12 +118,12 @@ void UHBStoryButtonUI::UpdateButton(EStoryMappingKey::Key EStoryMappingKey, FHBS
 
 	Button->StoryLevel = StoryInfo.Level;
 	Button->StoryContent = StoryInfo.StoryContent;
+	Button->SetToolTipText(FText::FromString(StoryInfo.StoryContent));
 }
 
-FOnStoryChangeDelegate* UHBStoryButtonUI::RequestStoryChangeDelegate()
+UHBStoryChoicePopUpUIButton::UHBStoryChoicePopUpUIButton()
 {
-	auto WidgetComponent = Cast<UHBPlayerWidget>(FindRootUserWidget(this))->OwnerComponent;
-	return WidgetComponent->GetStoryChangeDelegate();
+	InitIsFocusable(false);
 }
 
 void UHBStoryButtonUI::BindOnClickedDelegate()
@@ -118,22 +135,27 @@ void UHBStoryButtonUI::BindOnClickedDelegate()
 	}
 }
 
+const TArray<UHBStory*>& UHBStoryButtonUI::RequestStoryArray()
+{
+	return Cast<UHBPlayerWidgetComponent>(UHBWidgetBFL::FindOwnerComponent(this))->GetStoryArray();
+}
+
 void UHBStoryButton::UpdatePopUp()
 {
-	UHBStoryChoicePopUpUI* StoryChoicePopUpUI = Cast<UHBStoryChoicePopUpUI>(UHBWidgetBase::FindRootUserWidget(this)->WidgetTree->FindWidget(FName("StoryChoicePopUpUI")));
+	UHBStoryChoicePopUpUI* StoryChoicePopUpUI = Cast<UHBStoryChoicePopUpUI>(UHBWidgetBFL::FindRootUserWidget(this)->WidgetTree->FindWidget(FName("StoryChoicePopUpUI")));
 	// 1. Popup Update
 	StoryChoicePopUpUI->UpdateChoiceButtons(StoryLevel, EStoryMappingKey);
 
 	// 2. Show Popup
 	StoryChoicePopUpUI->SetVisibility(ESlateVisibility::Visible);
-	FInputModeUIOnly InputMode;
-	InputMode.SetWidgetToFocus(StoryChoicePopUpUI->TakeWidget()); // SetFocus();
-	UGameplayStatics::GetPlayerController(this, 0)->SetInputMode(InputMode);
+	//FInputModeUIOnly InputMode;
+	//InputMode.SetWidgetToFocus(StoryChoicePopUpUI->TakeWidget()); // SetFocus();
+	//UGameplayStatics::GetPlayerController(this, 0)->SetInputMode(InputMode);
 }
 
-void UHBStoryChoicePopUpUI::NativeConstruct()
+void UHBStoryChoicePopUpUI::PreInit()
 {
-	Super::NativeConstruct();
+	Super::PreInit();
 	CreateChoiceButtons();
 	CachedChoices.SetNum(6);
 	SetVisibility(ESlateVisibility::Collapsed);
@@ -183,26 +205,27 @@ void UHBStoryChoicePopUpUI::UpdateChoiceButtons(int StoryLevel, EStoryMappingKey
 		}
 	}
 
-	for(auto StoryChoiceButton : StoryChoiceButtons)
+	for(int i = 0; i < StoryChoiceButtons.Num(); ++i)
 	{
-		StoryChoiceButton->OnClicked.Clear();
-		StoryChoiceButton->OnClicked.AddDynamic(StoryChoiceButton, &UHBStoryChoicePopUpUIButton::GiveStory);
+		StoryChoiceButtons[i]->OnClicked.Clear();
+		StoryChoiceButtons[i]->OnClicked.AddDynamic(StoryChoiceButtons[i], &UHBStoryChoicePopUpUIButton::GiveStory);
+		StoryButtonNames[i]->SetText(FText::FromName(CachedChoices[EStoryMappingKey][i]->StoryName));
 	}
 }
 
 void UHBStoryChoicePopUpUIButton::GiveStory()
 {
-	UHBStoryChoicePopUpUI* PopUpUI = Cast<UHBStoryChoicePopUpUI>(UHBWidgetBase::FindUserWidget(this));
+	UHBStoryChoicePopUpUI* PopUpUI = Cast<UHBStoryChoicePopUpUI>(UHBWidgetBFL::FindUserWidget(this));
 	EStoryMappingKey::Key EStoryMappingKey = PopUpUI->CachedStoryContext;
 	auto StoryManager = UHBStoryManager::GetInstance(this);
 
 	// @HB-Todo : Character는 바뀔일 없으니 Cache 해놓기
-	UHBPlayerWidget* PlayerWidget = Cast<UHBPlayerWidget>(UHBWidgetBase::FindRootUserWidget(this));
-	auto WidgetComponent = Cast<UHBPlayerWidgetComponent>(PlayerWidget->OwnerComponent);
-	auto Character =  Cast<AHBPlayerCharacter>(WidgetComponent->GetOwner());
-	StoryManager->GiveStory(Character, PopUpUI->CachedChoices[EStoryMappingKey][ButtonIdx], EStoryMappingKey);
+	UHBPlayerWidget* PlayerWidget = Cast<UHBPlayerWidget>(UHBWidgetBFL::FindRootUserWidget(this));
+	auto PlayerController = PlayerWidget->GetOwningPlayer<AHBPlayerControllerBase>();
+	StoryManager->GiveStory(PlayerController->GetMainCharacter(), PopUpUI->CachedChoices[EStoryMappingKey][ButtonIdx], EStoryMappingKey);
 
 	PopUpUI->CachedChoices[EStoryMappingKey].Empty();
+	PopUpUI->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 

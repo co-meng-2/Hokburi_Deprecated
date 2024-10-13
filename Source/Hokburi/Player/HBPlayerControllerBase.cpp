@@ -6,6 +6,8 @@
 #include "AIController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "HBPlayerState.h"
+#include "Components/DecalComponent.h"
 #include "Components/HBPlayerWidgetComponent.h"
 #include "Core/CommandSystem/HBCommandHandler.h"
 #include "Core/StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
@@ -14,6 +16,7 @@
 
 AHBPlayerControllerBase::AHBPlayerControllerBase()
 {
+	PlayerWidgetComponent = CreateDefaultSubobject<UHBPlayerWidgetComponent>(FName("PlayerWidgetComponent"));
 	bShowMouseCursor = true;
 }
 
@@ -22,6 +25,8 @@ void AHBPlayerControllerBase::BeginPlay()
 	Super::BeginPlay();
 	UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
 	EnhancedInputSubsystem->AddMappingContext(IMC, 0);
+
+	SetInputMode(FInputModeGameAndUI());
 	// 마우스 화면에 가두기.
 	// SetInputMode(FInputModeGameAndUI().SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways));
 }
@@ -44,7 +49,7 @@ void AHBPlayerControllerBase::SetupInputComponent()
 void AHBPlayerControllerBase::ActivateStory(EStoryMappingKey::Key Key)
 {
 	auto SelectedCharacter = Cast<AHBPlayerCharacter>(SelectedActor);
-	if (SelectedCharacter) return;
+	if (!SelectedCharacter) return;
 	
 	SelectedCharacter->ActivateStory(Key);
 }
@@ -67,13 +72,74 @@ AActor* AHBPlayerControllerBase::GetActorUnderCursor()
 void AHBPlayerControllerBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	CachedActor = GetActorUnderCursor();
-	// @HB-Todo : 색상 바꾸기
+	
+	auto NewActor = GetActorUnderCursor();
+	if(NewActor != CachedActor)
+	{
+		if (CachedActor.Get())
+		{
+			if (auto Skel = CachedActor->GetComponentByClass<USkeletalMeshComponent>())
+			{
+				if (CachedActor != SelectedActor)
+				{
+					Skel->SetRenderCustomDepth(false);
+					Skel->SetCustomDepthStencilValue(0);
+				}
+			}
+		}
+
+		CachedActor = NewActor;
+
+		if (CachedActor.Get())
+		{
+			if (auto Skel = CachedActor->GetComponentByClass<USkeletalMeshComponent>())
+			{
+				if (CachedActor != SelectedActor)
+				{
+					Skel->SetRenderCustomDepth(true);
+					Skel->SetCustomDepthStencilValue(UnderCursorStencilValue);
+				}
+			}
+		}
+	}
 }
 
 void AHBPlayerControllerBase::SelectActor()
 {
+	if(SelectedActor.Get() && SelectedActor->Implements<UHBSelectableInterface>())
+	{
+		auto DecalComponent = IHBSelectableInterface::Execute_GetDecalComponent(SelectedActor.Get());
+		if (DecalComponent)
+		{
+			DecalComponent->Deactivate();
+			DecalComponent->SetVisibility(false);
+			if(auto Skel = SelectedActor->GetComponentByClass<USkeletalMeshComponent>())
+			{
+				Skel->SetRenderCustomDepth(false);
+				Skel->SetCustomDepthStencilValue(0);
+			}
+			
+		}
+	}
+
 	SelectedActor = CachedActor;
+
+	if (SelectedActor.Get() && SelectedActor->Implements<UHBSelectableInterface>())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("In"));
+		auto DecalComponent = IHBSelectableInterface::Execute_GetDecalComponent(SelectedActor.Get());
+		if (DecalComponent)
+		{
+			DecalComponent->Activate();
+			DecalComponent->SetVisibility(true);
+			if (auto Skel = SelectedActor->GetComponentByClass<USkeletalMeshComponent>())
+			{
+				Skel->SetRenderCustomDepth(true);
+				Skel->SetCustomDepthStencilValue(SelectedStencilValue);
+			}
+		}
+	}
+
 	// SelectedActor = GetActorUnderCursor();
 }
 
@@ -87,8 +153,12 @@ void AHBPlayerControllerBase::CommandSelectedActor()
 	AAIController* AIController = Cast<AAIController>(ActorPawn->GetController());
 	if (!AIController) return;
 
-	auto CommandHandler = Cast<IHBSelectableInterface>(SelectedActor)->Execute_GetCommandHandler(SelectedActor.Get());
+
+	if (!SelectedActor->Implements<UHBSelectableInterface>()) return;
+		
+	auto CommandHandler = IHBSelectableInterface::Execute_GetCommandHandler(SelectedActor.Get());
 	if (!CommandHandler) return;
+	
 
 	FHitResult Hit;
 	if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
@@ -104,6 +174,11 @@ void AHBPlayerControllerBase::CommandSelectedActor()
 		}
 		// @HB-ToDo : Attack, Hold... 
 	}
+}
+
+AHBPlayerCharacter* AHBPlayerControllerBase::GetMainCharacter()
+{
+	return Cast<AHBPlayerCharacter>(GetPlayerState<AHBPlayerState>()->GetAbilitySystemComponent()->GetAvatarActor());
 }
 
 

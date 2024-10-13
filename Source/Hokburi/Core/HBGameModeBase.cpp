@@ -4,10 +4,15 @@
 #include "Core/HBGameModeBase.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "Character/Components/HBCharacterWidgetComponent.h"
 #include "Engine/World.h"
+#include "Player/HBPlayerCameraPawn.h"
 #include "Player/HBPlayerCharacter.h"
 #include "Player/HBPlayerControllerBase.h"
+#include "Player/HBPlayerState.h"
+#include "Player/Components/HBPlayerWidgetComponent.h"
 #include "StorySystem/HBStoryManager.h"
+#include "StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
 
 void AHBGameModeBase::PostLogin(APlayerController* NewPlayer)
 {
@@ -17,8 +22,6 @@ void AHBGameModeBase::PostLogin(APlayerController* NewPlayer)
 
 void AHBGameModeBase::StartPlay()
 {
-	Super::StartPlay();
-
 	// RegisterStoryTableToStoryManager();
 	UHBStoryManager* StoryManager = UHBStoryManager::GetInstance(this);
 	StoryManager->InitStoryTable();
@@ -27,7 +30,7 @@ void AHBGameModeBase::StartPlay()
 	// 1. 내 플레이어 컨트롤러 찾음.
 	for(auto PlayerController : PlayerControllers)
 	{
-		auto HBPlayerControllerBase = Cast<AHBPlayerControllerBase>(PlayerController);
+		auto HBPlayerController = Cast<AHBPlayerControllerBase>(PlayerController);
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
@@ -36,8 +39,10 @@ void AHBGameModeBase::StartPlay()
 		APawn* CameraPawn = Cast<AHBPlayerControllerBase>(PlayerController)->GetPawn();
 		AHBPlayerCharacter* Character = GetWorld()->SpawnActor<AHBPlayerCharacter>(SpawnCharacterClass, CameraPawn->GetActorLocation(), CameraPawn->GetActorRotation(), SpawnParams);
 		Character->OwningStories.SetNum(EStoryMappingKey::END);
-		Character->PlayerController = HBPlayerControllerBase;
-		HBPlayerControllerBase->MainCharacter = Character;
+		Character->PlayerController = HBPlayerController;
+		auto PlayerState = HBPlayerController->GetPlayerState<AHBPlayerState>();
+		Character->ASC_MainCharacter = PlayerState->ASC;
+		PlayerState->ASC->InitAbilityActorInfo(PlayerState, Character);
 
 		for(int CurKey = EStoryMappingKey::E_Start; CurKey < EStoryMappingKey::END; CurKey++)
 		{
@@ -45,9 +50,9 @@ void AHBGameModeBase::StartPlay()
 			StoryManager->GiveStory(Character, DefaultStory, static_cast<EStoryMappingKey::Key>(CurKey));
 		}
 	}
-	
-	// 2. 컨트롤러에 등록된 MainCharacter 가지고옴. ( PlayerController가 MainCharacter 생성하도록 변경 )
-	// 3. MainCharacter의 Map된 Story 목록에 Default능력 추가.
+
+	// BeginPlay 담당
+	Super::StartPlay();
 }
 
 void AHBGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)

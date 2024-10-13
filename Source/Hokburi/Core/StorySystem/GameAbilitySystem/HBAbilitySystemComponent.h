@@ -18,13 +18,19 @@ class HOKBURI_API UHBAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 protected:
+	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 
-	// 동적으로 AttributeSet 정의
+	// Attribute
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Hokburi | Attribute")
 	TArray<TSubclassOf<UAttributeSet>> OwningAttributeClasses;
+	virtual void RegisterAttributes();
 
+	UPROPERTY(EditAnywhere, Category = "Hokburi | Attribute")
+	TSubclassOf<UGameplayEffect> GE_InitAttribute;
+
+	// Ability 관련된 것들 제거
 public:
 	void RemoveActiveGEFromAbilitySpec(const FGameplayAbilitySpecHandle GASpecHandle);
 

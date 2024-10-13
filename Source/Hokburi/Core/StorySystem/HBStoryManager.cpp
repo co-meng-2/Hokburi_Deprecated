@@ -22,21 +22,21 @@ UHBStoryManager* UHBStoryManager::GetInstance(UObject* WorldContextObject)
 void UHBStoryManager::InitStoryTable()
 {
 	static const FString DataTablePath = TEXT("DataTable'/Game/Hokburi/Core/StorySystem/StoryDataTable/DT_StoryDataTable.DT_StoryDataTable'");
-	StoryTable = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *DataTablePath));
+	StoryTable =LoadObject<UDataTable>(GetOuter(), *DataTablePath);
 }
 
 void UHBStoryManager::MakeStoryMapAndArrayFromStoryTable()
 {
-	TArray<FHBStoryTableRow*> AllStoryRows;
-	StoryTable->GetAllRows<FHBStoryTableRow>(TEXT(""), AllStoryRows);
+	TArray<FHBStoryTableRow*> StoryRows;
+	StoryTable->GetAllRows<FHBStoryTableRow>(TEXT(""), StoryRows);
 	TArray<FName> RowNames = StoryTable->GetRowNames();
 	StoryMap.SetNum(MaxStoryLevel);
 	StoryArray.SetNum(MaxStoryLevel);
-	for(int idx = 0; idx < AllStoryRows.Num(); ++idx)
+	for(int idx = 0; idx < StoryRows.Num(); ++idx)
 	{
-		int Level = AllStoryRows[idx]->Level;
-		StoryMap[Level].Add(RowNames[idx], AllStoryRows[idx]);
-		StoryArray[Level].Add(AllStoryRows[idx]);
+		int Level = StoryRows[idx]->Level;
+		StoryMap[Level].Add(RowNames[idx], StoryRows[idx]);
+		StoryArray[Level].Add(StoryRows[idx]);
 	}
 }
 
@@ -147,5 +147,6 @@ void UHBStoryManager::GiveStory(AHBPlayerCharacter* Character, FHBStoryTableRow*
 	}
 
 	Character->OwningStories[EStoryMappingKey] = NewStory;
+	// Delegate 
 	Character->OnStoryChange(EStoryMappingKey, *StoryInfo);
 }

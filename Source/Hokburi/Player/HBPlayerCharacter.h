@@ -38,7 +38,7 @@ class HOKBURI_API AHBPlayerCharacter : public AHBGameAbilityCharacter
 	GENERATED_BODY()
 
 public:
-	AHBPlayerCharacter();
+	AHBPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 	virtual void BeginPlay() override;
 
 	// Story
@@ -55,13 +55,15 @@ public:
 public:
 	void ActivateStory(EStoryMappingKey::Key Key);
 
-	// UI
-public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UHBPlayerWidgetComponent* PlayerWidgetComponent;
-
 	// PlayerController
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hokburi | PlayerController")
 	AHBPlayerControllerBase* PlayerController;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hokburi | Component")
+	TWeakObjectPtr<UHBAbilitySystemComponent> ASC_MainCharacter;
+
+	// Ability
+public:
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 };

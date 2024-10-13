@@ -4,16 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "HBWidgetBase.generated.h"
+#include "HBUserWidgetBase.generated.h"
 
 class UCanvasPanelSlot;
 /**
  * 
  */
 UCLASS()
-class HOKBURI_API UHBWidgetBase : public UUserWidget
+class HOKBURI_API UHBUserWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	// Init 전 Setting
+	virtual void PreInit(){};
+	// 하위 Widget에 대한 초깃값 Init
+	virtual void Init() {};
+	// Delegate 등록
+	virtual void BindDelegate() {};
+
+	virtual void NativeConstruct() override;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -24,12 +34,12 @@ public:
 
 	virtual void NativeOnFocusLost(const FFocusEvent& InFocusEvent) override;
 
-	static UUserWidget* FindRootUserWidget(UWidget* Widget);
-	static UUserWidget* FindUserWidget(UWidget* Widget);
+	// Character Widget Component에서는 Widget과 Component를 이을 자리가 없다.. 따라서 InitWidget을 override해서 RootUserWidget과 Component를 이어준다.
+	TWeakObjectPtr<UActorComponent> OwnerComponent;
 };
 
 UCLASS()
-class HOKBURI_API UHBMovableWidget : public UHBWidgetBase
+class HOKBURI_API UHBMovableUserWidget : public UHBUserWidgetBase
 {
 	GENERATED_BODY()
 

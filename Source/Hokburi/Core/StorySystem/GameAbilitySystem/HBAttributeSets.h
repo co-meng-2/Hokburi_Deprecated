@@ -26,12 +26,14 @@ class HOKBURI_API UHBAttributeSetBase : public UAttributeSet
 	GENERATED_BODY()
 
 public:
-	TMap<FGameplayAttribute, FOnAttributeChangedDelegate> UIUpdateDelegateMap;
+	TMap<FGameplayAttribute, FOnAttributeChangedDelegate> AttributeChangedDelegateMap;
 
 	FOnAttributeChangedDelegate* GetChangedDelegate(FGameplayAttribute Attribute)
 	{
-		return &UIUpdateDelegateMap.FindOrAdd(Attribute);
+		return &AttributeChangedDelegateMap.FindOrAdd(Attribute);
 	};
+
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 };
 
 UCLASS()
@@ -52,7 +54,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UHBHealthAttributeSet, MaxHealth);
 	ATTRIBUTE_ACCESSORS(UHBHealthAttributeSet, HealthRegen);
 
-	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+	
 };
 
 UCLASS()

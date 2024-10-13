@@ -1,15 +1,24 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Core/Widget/HBWidgetBase.h"
+#include "Core/Widget/HBUserWidgetBase.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 
 
-void UHBWidgetBase::NativeOnFocusLost(const FFocusEvent& InFocusEvent)
+void UHBUserWidgetBase::NativeConstruct()
+{
+	Super::NativeConstruct();
+    PreInit();
+    Init();
+    BindDelegate();
+}
+
+void UHBUserWidgetBase::NativeOnFocusLost(const FFocusEvent& InFocusEvent)
 {
 	Super::NativeOnFocusLost(InFocusEvent);
 
@@ -20,41 +29,9 @@ void UHBWidgetBase::NativeOnFocusLost(const FFocusEvent& InFocusEvent)
         else
             SetVisibility(ESlateVisibility::Hidden);
     }
-		
 }
 
-UUserWidget* UHBWidgetBase::FindRootUserWidget(UWidget* Widget)
-{
-    UWidget* CurWidget = Widget;
-
-    while (CurWidget)
-    {
-        CurWidget = FindUserWidget(CurWidget);
-        UUserWidget* UserWidget = Cast<UUserWidget>(CurWidget);
-        if (UserWidget && UserWidget->GetParent() == nullptr)
-            return UserWidget;
-    }
-
-    return nullptr;
-}
-
-UUserWidget* UHBWidgetBase::FindUserWidget(UWidget* Widget)
-{
-    UWidget* CurWidget = Widget;
-    while (CurWidget)
-    {
-    	UPanelWidget* ParentWidget = CurWidget->GetParent();
-        if(ParentWidget == nullptr)
-        {
-            UWidgetTree* CurWidgetTree = Cast<UWidgetTree>(CurWidget->GetOuter());
-            return Cast<UUserWidget>(CurWidgetTree->GetOuter());
-        }
-        CurWidget = ParentWidget;
-    }
-    return nullptr;
-}
-
-void UHBMovableWidget::NativeConstruct()
+void UHBMovableUserWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
@@ -62,7 +39,7 @@ void UHBMovableWidget::NativeConstruct()
     CanvasSlot = Cast<UCanvasPanelSlot>(Slot);
 }
 
-FReply UHBMovableWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UHBMovableUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
@@ -80,7 +57,7 @@ FReply UHBMovableWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, co
     return FReply::Unhandled();;
 }
 
-FReply UHBMovableWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UHBMovableUserWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
     if (bIsDragging && CanvasSlot)
     {
@@ -100,7 +77,7 @@ FReply UHBMovableWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FP
     return FReply::Unhandled();
 }
 
-FReply UHBMovableWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UHBMovableUserWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {

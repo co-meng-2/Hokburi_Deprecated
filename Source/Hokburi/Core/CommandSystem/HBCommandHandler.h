@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Core/HBObject.h"
+#include "Interface/HBSelectableInterface.h"
 #include "HBCommandHandler.generated.h"
 
 class UBlackboardComponent;
@@ -25,7 +26,7 @@ public:
 };
 
 UCLASS()
-class UHBCommand_Move : public UHBCommand
+class UHBCommand_Move : public UHBCommand,  public IHBSelectableInterface
 {
 	GENERATED_BODY()
 private:
@@ -42,12 +43,13 @@ class HOKBURI_API UHBCommandHandler : public UActorComponent
 	GENERATED_BODY()
 
 private:
+	// TQueue<UHBCommand> CommandQueue; Object를 상속받는 Class에 대해서는 이것이 권장되지 않을 뿐더러 복사생성자가 모호함.
 	TQueue<UHBCommand*> CommandQueue;
 
 
 public:
 	UBlackboardComponent* GetBlackBoard();
-	// TQueue<UHBCommand> CommandQueue; Object를 상속받는 Class에 대해서는 이것이 권장되지 않을 뿐더러 복사생성자가 모호함.
+	
 	UFUNCTION(BlueprintCallable)
 	void EnqueueCommand(UHBCommand* NewCommand);
 	UFUNCTION(BlueprintCallable)

@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AttributeSet.h"
 #include "HBPlayerCharacter.h"
-#include "Core/StorySystem/GameAbilitySystem/HBAttributeSets.h"
 #include "GameFramework/PlayerController.h"
+#include "AbilitySystemInterface.h"
 #include "HBPlayerControllerBase.generated.h"
+
 
 class UHBPlayerWidgetComponent;
 class AHBPlayerCharacter;
@@ -27,6 +27,7 @@ public:
 	AHBPlayerControllerBase();
 	virtual void BeginPlay() override;
 
+public:
 	AActor* GetActorUnderCursor();
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -51,7 +52,6 @@ private:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Hokburi | Selected")
 	TWeakObjectPtr<AActor>  SelectedActor;
 	TWeakObjectPtr<AActor>  CachedActor;
-	TWeakObjectPtr<AHBPlayerCharacter>	MainCharacter;
 
 	void SelectActor();
 	void CommandSelectedActor();
@@ -61,7 +61,17 @@ public:
 	AActor* GetSelectedActor() { return SelectedActor.Get(); }
 	UFUNCTION(BlueprintCallable)
 	void SetSelectedActor(AActor* NewActor) { SelectedActor = NewActor; }
-	AHBPlayerCharacter* GetMainCharacter() { return MainCharacter.Get(); }
+	AHBPlayerCharacter* GetMainCharacter();
 
-	friend class AHBGameModeBase;
+	// UI
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UHBPlayerWidgetComponent* PlayerWidgetComponent;
+
+	// PostProcess
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hokburi | PostProcess")
+	uint8 SelectedStencilValue = 2;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hokburi | PostProcess")
+	uint8 UnderCursorStencilValue = 1;
 };

@@ -14,9 +14,9 @@ UCLASS()
 class HOKBURI_API AHBGameAbilityCharacter : public AHBCharacterBase
 {
 	GENERATED_BODY()
+public:
+	AHBGameAbilityCharacter(const FObjectInitializer& ObjectInitializer);
 
 public:
 	TMap<FName, FGameplayAbilitySpecHandle> GASpecHandleMap;
-
-	bool TryActivateAbility(const FName& AbiltiyNameKey);
 };

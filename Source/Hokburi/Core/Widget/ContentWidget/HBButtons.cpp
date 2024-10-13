@@ -49,9 +49,5 @@ void UHBMovableButton::BindPressedReleasedEvent()
 	OnReleased.AddDynamic(this, &ThisClass::OnReleaseEvent);
 }
 
-UHBFocusableButton::UHBFocusableButton()
-{
-	InitIsFocusable(false);
-}
 
 

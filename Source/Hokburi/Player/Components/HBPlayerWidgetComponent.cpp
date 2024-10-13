@@ -4,27 +4,37 @@
 #include "Player/Components/HBPlayerWidgetComponent.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Player/HBPlayerControllerBase.h"
+#include "Player/HBPlayerState.h"
 #include "Player/Widget/HBPlayerWidget.h"
+
 
 void UHBPlayerWidgetComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// PlayerController로 옮겨줘야 하나 고민..
-	Widget = CreateWidget<UHBPlayerWidget, UWorld*>(GetWorld(), Widget->GetClass());
-
-	Widget->OwnerComponent = this;
-	Widget->AddToViewport();
+	Init();
 }
 
-FOnAttributeChangedDelegate* UHBPlayerWidgetComponent::GetAttChangeDelegate(FGameplayAttribute Attribute)
+void UHBPlayerWidgetComponent::Init()	
 {
-	auto ASC = Cast<UHBAbilitySystemComponent>(GetOwner()->GetComponentByClass(UHBAbilitySystemComponent::StaticClass()));
-	const UHBAttributeSetBase* AttSetClass = Cast<UHBAttributeSetBase>(ASC->GetAttributeSet(Attribute.GetAttributeSetClass()));
-	return const_cast<UHBAttributeSetBase*>(AttSetClass)->GetChangedDelegate(Attribute);
+	auto PlayerController = Cast<AHBPlayerControllerBase>(GetOwner());
+	GameWidget = CreateWidget<UHBPlayerWidget, AHBPlayerControllerBase*>(PlayerController, GameWidget->GetClass());
+	GameWidget->AddToViewport();
 }
+
 
 FOnStoryChangeDelegate* UHBPlayerWidgetComponent::GetStoryChangeDelegate()
 {
-	return &Cast<AHBPlayerCharacter>(GetOwner())->OnStoryChangeDelegate;
+	auto PlayerController = Cast<AHBPlayerControllerBase>(GetOwner());
+	auto MainCharacter = Cast<AHBPlayerCharacter>(PlayerController->GetMainCharacter());
+
+	return &MainCharacter->OnStoryChangeDelegate;
+}
+
+const TArray<UHBStory*>& UHBPlayerWidgetComponent::GetStoryArray()
+{
+	auto PlayerController = Cast<AHBPlayerControllerBase>(GetOwner());
+	auto MainCharacter = Cast<AHBPlayerCharacter>(PlayerController->GetMainCharacter());
+
+	return MainCharacter->OwningStories;
 }

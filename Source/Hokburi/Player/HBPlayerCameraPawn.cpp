@@ -9,6 +9,8 @@
 #include "EnhancedInputComponent.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
+
+
 AHBPlayerCameraPawn::AHBPlayerCameraPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -26,7 +28,7 @@ void AHBPlayerCameraPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CachedTargetLength = CameraBoom->TargetArmLength;
+	CachedTargetArmLength = CameraBoom->TargetArmLength;
 }
 
 void AHBPlayerCameraPawn::Tick(float DeltaTime)
@@ -46,19 +48,26 @@ void AHBPlayerCameraPawn::Tick(float DeltaTime)
 		MoveCameraFromMouseInEdge(DeltaTime);
 	}
 
-
+	// Input이 먼저 처리됨 -> Tick에 위임
 	if(bHasZoomInput)
 	{
 		float Ret = CameraBoom->TargetArmLength + CachedZoomDir * DeltaTime * ZoomSpeed;
-		CachedTargetLength = FMath::Clamp(Ret, MaxZoom, MinZoom);
-		// CameraBoom->TargetArmLength = FMath::Clamp(Ret, MaxZoom, MinZoom);
+		CachedTargetArmLength = FMath::Clamp(Ret, MinTargetArmLength, MaxTargetArmLength);
+		// CameraBoom->TargetArmLength = FMath::Clamp(Ret, MinTargetArmLength, MaxTargetArmLength);
 		bHasZoomInput = false;
 	}
 
 	// Zoom Smoothly
 	// 현재 값 + (타겟 값 - 현재 값) * (비율 : DT * SmoothSpeed)
 	// 일정 비율로 계속 타겟 값으로 향함. -> 초반엔 가파르게 후엔 완만하게 바뀐다.
-	CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, CachedTargetLength, DeltaTime, ZoomSmoothSpeed);
+	if (CameraBoom->TargetArmLength != CachedTargetArmLength)
+	{
+		CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, CachedTargetArmLength, DeltaTime, ZoomSmoothSpeed);
+		if( FMath::Abs(CameraBoom->TargetArmLength - CachedTargetArmLength) <= ZoomThreshold )
+		{
+			CameraBoom->TargetArmLength = CachedTargetArmLength;
+		}
+	}
 }
 
 void AHBPlayerCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

@@ -4,14 +4,17 @@
 #include "Player/HBPlayerCharacter.h"
 
 #include "EnhancedInputComponent.h"
+#include "HBPlayerControllerBase.h"
 #include "Components/HBPlayerWidgetComponent.h"
 #include "Core/StorySystem/HBStoryManager.h"
 #include "Core/StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
 #include "Widget/HBPlayerWidget.h"
 
-AHBPlayerCharacter::AHBPlayerCharacter()
+
+AHBPlayerCharacter::AHBPlayerCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.DoNotCreateNestedDefaultSubobject(TEXT("AbilitySystemComponent")))
 {
-	PlayerWidgetComponent = CreateDefaultSubobject<UHBPlayerWidgetComponent>(FName("PlayerWidgetComponent"));
+
 }
 
 void AHBPlayerCharacter::BeginPlay()
@@ -32,4 +35,9 @@ void AHBPlayerCharacter::ActivateStory(EStoryMappingKey::Key Key)
 		{
 		}
 	}
+}
+
+UAbilitySystemComponent* AHBPlayerCharacter::GetAbilitySystemComponent() const
+{
+	return ASC_MainCharacter.Get();
 }

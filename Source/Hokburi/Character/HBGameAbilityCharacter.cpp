@@ -3,13 +3,7 @@
 
 #include "Character/HBGameAbilityCharacter.h"
 
-#include "Core/StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
-
-bool AHBGameAbilityCharacter::TryActivateAbility(const FName& AbilityNameKey)
+AHBGameAbilityCharacter::AHBGameAbilityCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
-	if(auto GASpec = GASpecHandleMap.Find(AbilityNameKey))
-	{
-		return ASC->TryActivateAbility(*GASpec, false);
-	}
-	return false;
 }

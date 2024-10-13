@@ -3,13 +3,14 @@
 
 #include "Core/StorySystem/GameAbilitySystem/HBAttributeSets.h"
 
-void UHBHealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+
+void UHBAttributeSetBase::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
-	UE_LOG(LogTemp, Warning, TEXT("PostAttChange : Old %f  New %f" ), OldValue, NewValue);
-	if(UIUpdateDelegateMap.Find(Attribute))
+	UE_LOG(LogTemp, Warning, TEXT("PostAttChange : Old %f  New %f"), OldValue, NewValue);
+	if (AttributeChangedDelegateMap.Find(Attribute))
 	{
-		UIUpdateDelegateMap.Find(Attribute)->Broadcast(NewValue);
+		AttributeChangedDelegateMap.Find(Attribute)->Broadcast(NewValue);
 	}
 }

@@ -7,6 +7,7 @@
 #include "HBSelectableInterface.generated.h"
 
 class UHBCommandHandler;
+class UDecalComponent;
 // This class does not need to be modified.
 UINTERFACE(BlueprintType)
 class UHBSelectableInterface : public UInterface
@@ -24,4 +25,7 @@ class HOKBURI_API IHBSelectableInterface
 public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	UHBCommandHandler* GetCommandHandler();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	UDecalComponent* GetDecalComponent();
 };

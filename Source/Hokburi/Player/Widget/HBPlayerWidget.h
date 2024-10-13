@@ -6,14 +6,15 @@
 #include "Core/StorySystem/GameAbilitySystem/HBAttributeSets.h"
 #include "Player/HBPlayerCharacter.h"
 #include "Core/StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
-#include "Core/Widget/HBWidgetBase.h"
+#include "Core/Widget/HBUserWidgetBase.h"
 #include "Core/Widget/ContentWidget/HBButtons.h"
 #include "HBPlayerWidget.generated.h"
 
+class UHBProgressBar;
 class UHBStoryChoicePopUpUI;
 class UHBStatusUI;
 class UHBStoryButtonUI;
-class UHBWidgetBase;
+class UHBUserWidgetBase;
 class UVerticalBox;
 struct FHBStoryTableRow;
 class UHBPlayerWidgetComponent;
@@ -25,7 +26,7 @@ class UTextBlock;
  */
 
 UCLASS()
-class HOKBURI_API UHBPlayerWidget : public UHBWidgetBase
+class HOKBURI_API UHBPlayerWidget : public UHBUserWidgetBase
 {
 	GENERATED_BODY()
 
@@ -43,37 +44,25 @@ public:
 public:
 	UPROPERTY(meta = (BindWidget))
 	UHBStoryChoicePopUpUI* StoryChoicePopUpUI;
-
-public:
-	UHBPlayerWidgetComponent* OwnerComponent;
 };
 
 UCLASS()
-class UHBStatusUI : public UHBWidgetBase
+class UHBStatusUI : public UHBUserWidgetBase
 {
 	GENERATED_BODY()
 
 public:
-	virtual void NativeConstruct() override;
+	virtual void BindDelegate() override;
+	virtual void Init() override;
 
 public:
 	UPROPERTY(meta = (BindWidget))
-		UProgressBar* HPBar;
+	UHBProgressBar* HPBar;
 	UPROPERTY(meta = (BindWidget))
-		UProgressBar* MPBar;
+	UHBProgressBar* MPBar;
 
-	UFUNCTION()
-		void UpdateHPBar();
-	UFUNCTION()
-		void UpdateHP(float New);
-	UFUNCTION()
-		void UpdateMaxHP(float New);
-
-	void BindHPDelegate();
-	float HP = 1.f;
-	float MaxHP = 1.f;
-
-	FOnAttributeChangedDelegate* RequestAttChangeDelegate(FGameplayAttribute Attribute);
+	FOnAttributeChangedDelegate* RequestAttChangeDelegate(const FGameplayAttribute& Attribute);
+	void BindHPBarDelegate();
 };
 
 UCLASS()
@@ -91,12 +80,16 @@ public:
 };
 
 UCLASS()
-class UHBStoryButtonUI : public UHBWidgetBase
+class UHBStoryButtonUI : public UHBUserWidgetBase
 {
 	GENERATED_BODY()
 
 public:
-	virtual void NativeConstruct() override;
+
+	virtual void PreInit() override;
+	virtual void Init() override;
+	virtual void BindDelegate() override;
+	
 
 public:
 	UPROPERTY(meta = (BindWidget))
@@ -115,18 +108,22 @@ public:
 	TMap<EStoryMappingKey::Key, UHBStoryButton*> ButtonMap;
 	void InitButtonMap();
 
-	FOnStoryChangeDelegate* RequestStoryChangeDelegate();
 	void BindOnClickedDelegate();
 
+	const TArray<UHBStory*>& RequestStoryArray();
+	FOnStoryChangeDelegate* RequestStoryChangeDelegate();
 	void BindStoryChangeDelegate();
 	UFUNCTION()
 	void UpdateButton(EStoryMappingKey::Key EStoryMappingKey, FHBStoryTableRow& StoryInfo);
 };
 
 UCLASS()
-class UHBStoryChoicePopUpUIButton : public UHBFocusableButton
+class UHBStoryChoicePopUpUIButton : public UButton
 {
 	GENERATED_BODY()
+
+public:
+	UHBStoryChoicePopUpUIButton();
 
 public:
 	int ButtonIdx;
@@ -136,12 +133,11 @@ public:
 };
 
 UCLASS()
-class HOKBURI_API UHBStoryChoicePopUpUI : public UHBMovableWidget
+class HOKBURI_API UHBStoryChoicePopUpUI : public UHBMovableUserWidget
 {
 	GENERATED_BODY()
 public:
-
-	virtual void NativeConstruct() override;
+	virtual void PreInit() override;
 
 public:
 	UPROPERTY()

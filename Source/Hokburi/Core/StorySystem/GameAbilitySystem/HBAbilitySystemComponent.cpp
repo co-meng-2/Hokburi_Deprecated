@@ -6,11 +6,30 @@
 #include "Blueprint/UserWidget.h"
 #include "Player/Widget/HBPlayerWidget.h"
 
+
+void UHBAbilitySystemComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	// if (IsDefaultSubobject()) return;
+	if (GetWorld())
+	{
+		RegisterAttributes();
+		if (GE_InitAttribute == nullptr) return;
+
+		auto InitAttSpecHandle = MakeOutgoingSpec(GE_InitAttribute, 0, MakeEffectContext());
+		ApplyGameplayEffectSpecToSelf(*InitAttSpecHandle.Data.Get());
+	}
+}
+
 void UHBAbilitySystemComponent::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
-	for(const TSubclassOf<UAttributeSet>& AttSetClass : OwningAttributeClasses)
+void UHBAbilitySystemComponent::RegisterAttributes()
+{
+	for (const TSubclassOf<UAttributeSet>& AttSetClass : OwningAttributeClasses)
 	{
 		UAttributeSet* NewAttributeSet = NewObject<UAttributeSet>(this, AttSetClass);
 		AddAttributeSetSubobject(NewAttributeSet);

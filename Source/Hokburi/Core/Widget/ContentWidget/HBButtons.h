@@ -29,12 +29,3 @@ public:
 	FTimerHandle Handle;
 	FVector2D PrevMousePos;
 };
-
-UCLASS()
-class HOKBURI_API UHBFocusableButton : public UButton
-{
-	GENERATED_BODY()
-
-public:
-	UHBFocusableButton();
-};

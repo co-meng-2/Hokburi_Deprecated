@@ -8,6 +8,7 @@
 #include "HBPlayerWidgetComponent.generated.h"
 
 
+class UHBStory;
 class FOnStoryChangeDelegate;
 class AHBPlayerControllerBase;
 class UHBPlayerWidget;
@@ -19,11 +20,12 @@ class HOKBURI_API UHBPlayerWidgetComponent : public UActorComponent
 
 public:
 	virtual void BeginPlay() override;
+	void Init();
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UHBPlayerWidget* Widget;
+	UHBPlayerWidget* GameWidget;
 
-	FOnAttributeChangedDelegate* GetAttChangeDelegate(FGameplayAttribute Attribute);
 	FOnStoryChangeDelegate* GetStoryChangeDelegate();
+	const TArray<UHBStory*>& GetStoryArray();
 };

@@ -31,7 +31,7 @@ public:
 public:
 	UPROPERTY(EditAnywhere, Category = "Hokburi | Camera")
 	TObjectPtr<UCameraComponent>		Camera;
-	UPROPERTY(EditAnywhere, Category = "Hokburi | Camera")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hokburi | Camera")
 	TObjectPtr<USpringArmComponent>		CameraBoom;
 	UPROPERTY(EditAnywhere, Category = "Hokburi | Camera")
 	TObjectPtr<UStaticMeshComponent>	StaticMesh;
@@ -42,19 +42,21 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Hokburi | Input")
 	UInputAction* IA_Zoom;
 
+	// Camera
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Hokburi | Init")
 	float CameraMoveSpeed = 200.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Hokburi | Init")
 	float EdgeMargin = 20.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Hokburi | Zoom")
-	float MaxZoom = 500.f;
-	UPROPERTY(EditDefaultsOnly, Category = "Hokburi | Zoom")
-	float MinZoom = 2000.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hokburi | Zoom")
+	float MinTargetArmLength = 500.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hokburi | Zoom")
+	float MaxTargetArmLength = 2000.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Hokburi | Zoom")
 	float ZoomSpeed = 500.f;
 	float ZoomSmoothSpeed = 5.f;
+	float ZoomThreshold = 5.f;
 
 private:
 	void Move(const FInputActionValue& Value);
@@ -67,7 +69,7 @@ private:
 
 	bool bHasZoomInput;
 	float CachedZoomDir;
-	float CachedTargetLength;
+	float CachedTargetArmLength;
 
 	int ScreenSizeX;
 	int ScreenSizeY;

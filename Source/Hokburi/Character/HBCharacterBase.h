@@ -7,6 +7,9 @@
 #include "GameFramework/Character.h"
 #include "HBCharacterBase.generated.h"
 
+class UHBDataComponent;
+class UHBCombatComponent;
+class UHBTeamComponent;
 class UHBCharacterWidgetComponent;
 class UWidgetComponent;
 class AHBPlayerControllerBase;
@@ -35,6 +38,15 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hokburi | Components")
 	UDecalComponent* DecalComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hokburi | Components")
+	UHBTeamComponent* TeamComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hokburi | Components")
+	UHBCombatComponent* CombatComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hokburi | Components")
+	UHBDataComponent* DataComponent;
 
 public:
 	UFUNCTION(BlueprintCallable)

@@ -24,7 +24,7 @@ void UHBHPBarUI::BindDelegate()
 {
 	Super::BindDelegate();
 	auto HPDelegate = RequestAttChangeDelegate(UHBHealthAttributeSet::GetHealthAttribute());
-	auto MaxHPDelegate = RequestAttChangeDelegate(UHBHealthAttributeSet::GetHealthAttribute());
+	auto MaxHPDelegate = RequestAttChangeDelegate(UHBHealthAttributeSet::GetMaxHealthAttribute());
 	HPDelegate->AddDynamic(HPBar, &UHBProgressBar::UpdateCur);
 	MaxHPDelegate->AddDynamic(HPBar, &UHBProgressBar::UpdateMax);
 }

@@ -21,7 +21,8 @@ public class Hokburi : ModuleRules
             "AIModule",
             "Niagara",
 			"Slate",
-			"SlateCore"
+			"SlateCore",
+			"Niagara"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

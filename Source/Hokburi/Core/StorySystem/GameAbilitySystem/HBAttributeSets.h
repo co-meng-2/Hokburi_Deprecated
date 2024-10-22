@@ -41,7 +41,7 @@ class HOKBURI_API UHBHealthAttributeSet : public UHBAttributeSetBase
 {
 	GENERATED_BODY()
 
-protected:
+public:
 	UPROPERTY()
 	FGameplayAttributeData Health;
 	UPROPERTY()
@@ -53,8 +53,6 @@ public:
 	ATTRIBUTE_ACCESSORS(UHBHealthAttributeSet, Health);
 	ATTRIBUTE_ACCESSORS(UHBHealthAttributeSet, MaxHealth);
 	ATTRIBUTE_ACCESSORS(UHBHealthAttributeSet, HealthRegen);
-
-	
 };
 
 UCLASS()
@@ -62,11 +60,17 @@ class HOKBURI_API UHBAttackAttributeSet : public UHBAttributeSetBase
 {
 	GENERATED_BODY()
 
-protected:
+public:
+	UPROPERTY()
 	FGameplayAttributeData AttackPoint;
+	UPROPERTY()
 	FGameplayAttributeData AttackSpeed;
+	// meta Attribute
+	UPROPERTY()
+	FGameplayAttributeData Damage;
 
 public:
 	ATTRIBUTE_ACCESSORS(UHBAttackAttributeSet, AttackPoint);
 	ATTRIBUTE_ACCESSORS(UHBAttackAttributeSet, AttackSpeed);
+	ATTRIBUTE_ACCESSORS(UHBAttackAttributeSet, Damage);
 };

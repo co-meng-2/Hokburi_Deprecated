@@ -11,7 +11,6 @@ void UHBAbilitySystemComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	// if (IsDefaultSubobject()) return;
 	if (GetWorld())
 	{
 		RegisterAttributes();

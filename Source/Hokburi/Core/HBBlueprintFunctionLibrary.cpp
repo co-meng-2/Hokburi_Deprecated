@@ -67,6 +67,19 @@ UHBAttributeSetBase* UHBGameAbilitySystemBFL::GetAttSet(AActor* ActorWithASC, co
     return const_cast<UHBAttributeSetBase*>(AttributeSet);
 }
 
+bool UHBUtilityBFL::IsRotationDifferenceSmall(const FRotator& RotationA, const FRotator& RotationB,
+	float ThresholdDegrees)
+{
+    // 두 회전값 간의 차이 계산
+    FRotator DeltaRotation = (RotationB - RotationA).GetNormalized();
+
+    // 차이 각도의 크기를 구함
+    float DeltaAngle = FMath::Abs(DeltaRotation.Yaw) + FMath::Abs(DeltaRotation.Pitch) + FMath::Abs(DeltaRotation.Roll);
+
+    // 임계값과 비교
+    return DeltaAngle < ThresholdDegrees;
+}
+
 FOnAttributeChangedDelegate* UHBGameAbilitySystemBFL::GetAttChangeDelegate(AActor* ActorWithASC, const FGameplayAttribute& Attribute)
 {
     auto AttSetClass = GetAttSet(ActorWithASC, Attribute);

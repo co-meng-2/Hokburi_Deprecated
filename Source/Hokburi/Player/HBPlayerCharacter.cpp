@@ -12,9 +12,9 @@
 
 
 AHBPlayerCharacter::AHBPlayerCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.DoNotCreateNestedDefaultSubobject(TEXT("AbilitySystemComponent")))
+	: Super(ObjectInitializer.DoNotCreateDefaultSubobject(TEXT("AbilitySystemComponent")))
 {
-
+	
 }
 
 void AHBPlayerCharacter::BeginPlay()

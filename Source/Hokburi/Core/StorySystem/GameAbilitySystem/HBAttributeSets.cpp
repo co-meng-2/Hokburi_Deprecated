@@ -9,6 +9,7 @@ void UHBAttributeSetBase::PostAttributeChange(const FGameplayAttribute& Attribut
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
 	UE_LOG(LogTemp, Warning, TEXT("PostAttChange : Old %f  New %f"), OldValue, NewValue);
+
 	if (AttributeChangedDelegateMap.Find(Attribute))
 	{
 		AttributeChangedDelegateMap.Find(Attribute)->Broadcast(NewValue);

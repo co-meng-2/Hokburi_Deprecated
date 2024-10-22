@@ -45,7 +45,7 @@ void AHBPlayerCameraPawn::Tick(float DeltaTime)
 	else
 	{
 		// 마우스가 보이게 Controller -> bShowMouseCursor = true;
-		MoveCameraFromMouseInEdge(DeltaTime);
+		// MoveCameraFromMouseInEdge(DeltaTime);
 	}
 
 	// Input이 먼저 처리됨 -> Tick에 위임
@@ -82,9 +82,11 @@ void AHBPlayerCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInput
 void AHBPlayerCameraPawn::Move(const FInputActionValue& Value)
 {
 	FVector Val = Value.Get<FVector>();
-	// Camera는 캐릭터 움직임이 아니라 방향에 대한 공정성이 없어도 될듯.
-	// Val.Normalize(); 
-	CachedMoveDir = Val;
+
+	// 방향 벡터를 Pawn의 로컬 방향 기준으로 변환
+	FRotator ControlRotation = GetActorRotation();
+	CachedMoveDir = FRotationMatrix(ControlRotation).TransformVector(Val);
+
 	bHasMoveInput = true;
 }
 

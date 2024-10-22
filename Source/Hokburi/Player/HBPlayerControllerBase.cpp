@@ -11,8 +11,10 @@
 #include "Components/HBPlayerWidgetComponent.h"
 #include "Core/CommandSystem/HBCommandHandler.h"
 #include "Core/StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
+#include "Core/TeamSystem/HBTeamSystem.h"
 #include "Engine/LocalPlayer.h"
 #include "Interface/HBSelectableInterface.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 AHBPlayerControllerBase::AHBPlayerControllerBase()
 {
@@ -26,9 +28,11 @@ void AHBPlayerControllerBase::BeginPlay()
 	UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
 	EnhancedInputSubsystem->AddMappingContext(IMC, 0);
 
-	SetInputMode(FInputModeGameAndUI());
+	auto InputMode = FInputModeGameAndUI();
+	InputMode.SetHideCursorDuringCapture(true);
+	// InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways);
+	SetInputMode(InputMode);
 	// 마우스 화면에 가두기.
-	// SetInputMode(FInputModeGameAndUI().SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways));
 }
 
 void AHBPlayerControllerBase::SetupInputComponent()
@@ -113,12 +117,11 @@ void AHBPlayerControllerBase::SelectActor()
 		{
 			DecalComponent->Deactivate();
 			DecalComponent->SetVisibility(false);
-			if(auto Skel = SelectedActor->GetComponentByClass<USkeletalMeshComponent>())
+			if (auto Skel = SelectedActor->GetComponentByClass<USkeletalMeshComponent>())
 			{
 				Skel->SetRenderCustomDepth(false);
 				Skel->SetCustomDepthStencilValue(0);
 			}
-			
 		}
 	}
 
@@ -126,7 +129,6 @@ void AHBPlayerControllerBase::SelectActor()
 
 	if (SelectedActor.Get() && SelectedActor->Implements<UHBSelectableInterface>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("In"));
 		auto DecalComponent = IHBSelectableInterface::Execute_GetDecalComponent(SelectedActor.Get());
 		if (DecalComponent)
 		{
@@ -143,9 +145,37 @@ void AHBPlayerControllerBase::SelectActor()
 	// SelectedActor = GetActorUnderCursor();
 }
 
+void AHBPlayerControllerBase::Command_MoveToLocation(UHBCommandHandler* CommandHandler, FHitResult& Hit)
+{
+	if (CommandHandler->bCanMove)
+	{
+		// 높이 값 무시
+		Hit.Location.Z = SelectedActor->GetActorLocation().Z;
+
+		UHBCommand_MoveToLocation* Command = UHBCommand_MoveToLocation::StaticClass()->GetDefaultObject<UHBCommand_MoveToLocation>();
+		Command->SetDestLocation(Hit.Location);
+		Command->RunCommand_Implementation(GetMainCharacter(), GetMainCharacter()->Controller->GetComponentByClass<UBlackboardComponent>());
+	}
+}
+
+void AHBPlayerControllerBase::Command_MoveToActor(UHBCommandHandler* CommandHandler, FHitResult& Hit)
+{
+	if (CommandHandler->bCanMove)
+	{
+		UHBCommand_MoveToActor* Command = UHBCommand_MoveToActor::StaticClass()->GetDefaultObject<UHBCommand_MoveToActor>();
+		Command->SetTarget(Hit.GetActor());
+		Command->RunCommand_Implementation(GetMainCharacter(), GetMainCharacter()->Controller->GetComponentByClass<UBlackboardComponent>());
+	}
+}
+
 void AHBPlayerControllerBase::CommandSelectedActor()
 {
 	if (!SelectedActor.IsValid()) return;
+
+	auto TeamComponent = SelectedActor->GetComponentByClass<UHBTeamComponent>();
+	auto PlayerTag = GetMainCharacter()->TeamComponent->GetPlayerTag();
+	
+	if (!TeamComponent && !TeamComponent->HasSamePlayerTag(PlayerTag)) return;
 
 	APawn* ActorPawn = Cast<APawn>(SelectedActor);
 	if (!ActorPawn) return;
@@ -153,25 +183,31 @@ void AHBPlayerControllerBase::CommandSelectedActor()
 	AAIController* AIController = Cast<AAIController>(ActorPawn->GetController());
 	if (!AIController) return;
 
-
 	if (!SelectedActor->Implements<UHBSelectableInterface>()) return;
 		
 	auto CommandHandler = IHBSelectableInterface::Execute_GetCommandHandler(SelectedActor.Get());
 	if (!CommandHandler) return;
-	
 
 	FHitResult Hit;
 	if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
 	{
-		if (CommandHandler->bCanMove)
+		AActor* HitActor = Hit.GetActor();
+		if(auto ActorTeamComp = HitActor->GetComponentByClass<UHBTeamComponent>())
 		{
-			// 높이 값 무시
-			Hit.Location.Z = SelectedActor->GetActorLocation().Z;
-
-			UHBCommand_Move* CommandMove = NewObject<UHBCommand_Move>();
-			CommandMove->SetDestLocation(Hit.Location);
-			CommandHandler->EnqueueCommand(CommandMove);
+			if(ActorTeamComp->GetTeamTag() == TeamComponent->GetTeamTag())
+			{
+				Command_MoveToActor(CommandHandler, Hit);
+			}
+			else
+			{
+				
+			}
 		}
+		else
+		{
+			Command_MoveToLocation(CommandHandler, Hit);
+		}
+		
 		// @HB-ToDo : Attack, Hold... 
 	}
 }

@@ -6,6 +6,7 @@
 #include "HBPlayerCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "AbilitySystemInterface.h"
+#include "Core/CommandSystem/HBCommandHandler.h"
 #include "HBPlayerControllerBase.generated.h"
 
 
@@ -46,6 +47,11 @@ public:
 	virtual void SetupInputComponent() override;
 private:
 	void ActivateStory(EStoryMappingKey::Key Key);
+
+public:
+	// Command
+	void Command_MoveToLocation(UHBCommandHandler* CommandHandler, FHitResult& Hit);
+	void Command_MoveToActor(UHBCommandHandler* CommandHandler, FHitResult& Hit);
 
 	// Selected
 private:

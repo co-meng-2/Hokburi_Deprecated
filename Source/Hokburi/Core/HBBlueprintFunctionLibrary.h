@@ -39,3 +39,13 @@ public:
 	}
 	
 };
+
+UCLASS()
+class HOKBURI_API UHBUtilityBFL : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+
+public:
+	static bool IsRotationDifferenceSmall(const FRotator& RotationA, const FRotator& RotationB, float ThresholdDegrees);
+};
+

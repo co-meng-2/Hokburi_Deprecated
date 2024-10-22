@@ -5,7 +5,10 @@
 
 #include "Components/DecalComponent.h"
 #include "Components/HBCharacterWidgetComponent.h"
+#include "Components/HBCombatComponent.h"
+#include "Components/HBDataComponent.h"
 #include "Core/StorySystem/GameAbilitySystem/HBAbilitySystemComponent.h"
+#include "Core/TeamSystem/HBTeamSystem.h"
 
 // Sets default values
 AHBCharacterBase::AHBCharacterBase(const FObjectInitializer& ObjectInitializer)
@@ -16,7 +19,7 @@ AHBCharacterBase::AHBCharacterBase(const FObjectInitializer& ObjectInitializer)
 
 	// BP로 위임 -> SelectableInterface 구현 -> GetCommandHandler구현 강제됨. -> CommandHandler추가할지 말지 결정.
 	// CommandHandler = CreateDefaultSubobject<UHBCommandHandler>(FName("CommandHandler"));
-	ASC = CreateOptionalDefaultSubobject<UHBAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	ASC = ObjectInitializer.CreateOptionalDefaultSubobject<UHBAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 
 	CharacterWidgetComponent = CreateDefaultSubobject<UHBCharacterWidgetComponent>(FName("CharacterWidgetComponent"));
 	CharacterWidgetComponent->SetupAttachment(RootComponent);
@@ -27,6 +30,16 @@ AHBCharacterBase::AHBCharacterBase(const FObjectInitializer& ObjectInitializer)
 	DecalComponent->SetupAttachment(RootComponent);
 	DecalComponent->Deactivate();
 	DecalComponent->SetVisibility(false);
+
+	TeamComponent = CreateDefaultSubobject<UHBTeamComponent>(TEXT("TeamComponent"));
+
+	CombatComponent = CreateDefaultSubobject<UHBCombatComponent>(FName("CombatComponent"));
+	CombatComponent->SetupAttachment(RootComponent);
+	CombatComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CombatComponent->OnComponentBeginOverlap.AddDynamic(CombatComponent, &UHBCombatComponent::OnBeginOverlap);
+	CombatComponent->OnComponentEndOverlap.AddDynamic(CombatComponent, &UHBCombatComponent::OnEndOverlap);
+
+	DataComponent = CreateDefaultSubobject<UHBDataComponent>(FName("DataComponent"));
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }

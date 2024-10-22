@@ -6,6 +6,7 @@
 #include "AIController.h"
 #include "HBAIControllerBase.generated.h"
 
+class UBehaviorTreeComponent;
 /**
  * 
  */
@@ -13,5 +14,7 @@ UCLASS()
 class HOKBURI_API AHBAIControllerBase : public AAIController
 {
 	GENERATED_BODY()
-	
+
+public:
+	virtual void BeginPlay() override;
 };
